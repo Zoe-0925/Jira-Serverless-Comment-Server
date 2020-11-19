@@ -24,5 +24,9 @@ app.post('/message', (req, res) => {
   res.send(payload)
 });
 
+app.get('/', function(req, res) {
+  res.send('This is the realtime server for the comment feature!');
+});
+
 app.listen(app.get('PORT'), () =>
   console.log('Listening at ' + app.get('PORT')))
