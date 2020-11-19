@@ -1,0 +1,27 @@
+{
+  "name": "jira-serverless-comment-server",
+  "version": "1.0.0",
+  "description": "The real-time server for the Comment feature in Jira-serverless",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zoe-0925/Jira-Serverless-Comment-Server.git"
+  },
+  "author": "Zoe Shenqiu Zhang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Zoe-0925/Jira-Serverless-Comment-Server/issues"
+  },
+  "homepage": "https://github.com/Zoe-0925/Jira-Serverless-Comment-Server#readme",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "pusher": "^4.0.1",
+    "pusher-js": "^7.0.1"
+  }
+}
