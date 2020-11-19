@@ -4,7 +4,8 @@
   "description": "The real-time server for the Comment feature in Jira-serverless",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test"
+    "test": "npm run test",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
