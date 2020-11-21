@@ -1,15 +1,16 @@
-const db = require("../models");
-const Status = db.status
-const passport = require("passport")
+const API = require('@aws-amplify/api')
+const wssSendDt = require('../../server')
 
-const validateId = (req, res) => {
-    if (!req.params.id) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
+const checkLastUpdate = (data) => {
+    try {
+        const lastUpdatedAt = await API.get("StatusApi", "/status/object/updatedAt" + data._id)
+        if (lastUpdatedAt === data.upatedAt) { return true }
+        return false
+    } catch (err) {
+        return false
     }
 }
+
 
 exports.create = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, async (err, user, info) => {
@@ -60,27 +61,21 @@ exports.findAll = (req, res) => {
 }
 
 // Retrieve a single Status with id
-exports.findOne = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        validateId(req, res);
-        Status.find({ _id: req.params.id }).then(data => {
-            return res.status(200).json({
-                success: true,
-                data: data
-            });
-        }).catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Statuss."
-            });
-        });
-    })(req, res, next);
+exports.updateIssueOrders = (req, res) => {
+    try {
+        const updatedAt = await API.put("StatusApi", "/status/update/attribute", {
+            body: req.body
+        })
+        wssSendDt(updatedAt, "status", "updateIssueOrders")
+        res.send()
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Could not delete label. Error: " + err
+        })
+    }
+
+
 }
 
 // Retrieve all Statuss in a particular project

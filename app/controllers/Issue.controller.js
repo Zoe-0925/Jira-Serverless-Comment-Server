@@ -1,5 +1,16 @@
 const API = require('@aws-amplify/api')
 
+
+const checkLastUpdate = (data) => {
+    try {
+        const lastUpdatedAt = await API.get("IssueApi", "/issues/object/" + data._id + "/updatedAt")
+        if (lastUpdatedAt === data.upatedAt) { return true }
+        return false
+    } catch (err) {
+        return false
+    }
+}
+
 exports.create = (req, res) => {
     try {
         const updatedAt = await API.post("IssueApi", "/issues/")
@@ -56,6 +67,8 @@ exports.deleteByProject = (projectId) => async (dispatch) => {
     }
 }
 
+//TODO
+//Needs check...
 exports.removeLabelFromIssues = async (req, res) => {
     try {
         req.body.tasksToUpdate.forEach(issueId => {

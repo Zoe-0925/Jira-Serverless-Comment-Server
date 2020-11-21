@@ -30,8 +30,8 @@ const checkIfTaskIsEditable = async (id, req) => {
   return {}
 }
 
-const wssSendDt = (dt) => {
-  const wssMessage = JSON.stringify({ type: 'dt', dt })
+exports.wssSendDt = (dt, tableName, operation) => {
+  const wssMessage = JSON.stringify({ dt: dt, table: tableName, operation: operation })
   wss.clients.forEach((ws) => ws.send(wssMessage))
 }
 
