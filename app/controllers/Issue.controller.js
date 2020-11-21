@@ -30,27 +30,50 @@ exports.updateIssueAttribute = (req, res) => {
     }
 }
 
-exports.delete = (req, res, next) => {
-    
-}
-
-exports.deleteAll = async (req, res) => {
-    validateId(req, res);
+exports.delete = (req, res) => {
     try {
-        await Issue.deleteMany()
-        return res.status(200).json({
-            success: true
-        });
+        const updatedAt = await API.del("IssueApi", "/issues/object/" + req.param.issueId)
+        wssSendDt(updatedAt)
+        res.send()
     }
     catch (err) {
         return res.status(500).json({
-            success: false,
-            message: "Could not delete issues. Error: " + err
+            error: "Could not delete issues. Error: " + err
         })
     }
 }
 
-//TODO only the assignee can delete the issue?
-//Or all team members can delete it???
-//check the authorization
+exports.deleteByProject = (projectId) => async (dispatch) => {
+    try {
+        const updatedAt = await API.del("IssueApi", "/issues/project/" + projectId)
+        wssSendDt(updatedAt)
+        res.send()
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Could not delete issues. Error: " + err
+        })
+    }
+}
 
+exports.removeLabelFromIssues = async (req, res) => {
+    try {
+        req.body.tasksToUpdate.forEach(issueId => {
+            API.put("IssueApi", "/issues/update/attribute", {
+                body: {
+                    _id: issueId,
+                    attribute: "label",
+                    value: req.body.tasksToUpdate.labels.filter(item => item !== labelId)
+                }
+            }).then(updatedAt => {
+                wssSendDt(updatedAt)
+                res.send()
+            })
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Could not delete issues. Error: " + err
+        })
+    }
+}
