@@ -242,30 +242,13 @@ app.patch('/tasks/:id/try_unlock', async (req, res) => {
   }
 })
 
-app.patch('/tasks/:id/deny_unlock', async (req, res) => {
-  try {
-    const task = await checkIfTaskIsEditable(req.params.id, req)
-    const dt = (new Date).getTime()
-    await db.query('update tasks set locking_switch_requested_by="",locking_switch_requested_at=0,updated_at=? where id=?', [dt, task.id])
-    wssSendDt(dt)
-    res.send()
-  } catch (error) {
-    console.error(error)
-    res.status(error.status || 500).send({ error: error.message })
-  }
-})
 
-app.patch('/tasks/:id/allow_unlock', async (req, res) => {
-  try {
-    const task = await checkIfTaskIsEditable(req.params.id, req)
-    const dt = (new Date).getTime()
-    await db.query('update tasks set locked_by=?,locked_at=?,locking_switch_requested_by="",locking_switch_requested_at=0,updated_at=? where id=?', [dt.locking_switch_requested_by, dt, dt, task.id])
-    wssSendDt(dt)
-    res.send()
-  } catch (error) {
-    console.error(error)
-    res.status(error.status || 500).send({ error: error.message })
-  }
-})
+
+//Routes
+require("./app/routes/Label.routes")(app);
+require("./app/routes/Status.routes")(app);
+require("./app/routes/Comment.routes")(app);
+require("./app/routes/Issue.routes")(app);
+
 
 server.listen(process.env.PORT)
