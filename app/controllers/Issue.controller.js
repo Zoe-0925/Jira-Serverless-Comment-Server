@@ -1,7 +1,7 @@
 const API = require('@aws-amplify/api')
 
 
-const checkLastUpdate = (data) => {
+const checkLastUpdate = async (data) => {
     try {
         const lastUpdatedAt = await API.get("IssueApi", "/issues/object/" + data._id + "/updatedAt")
         if (lastUpdatedAt === data.upatedAt) { return true }
@@ -11,25 +11,23 @@ const checkLastUpdate = (data) => {
     }
 }
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     try {
-        const updatedAt = await API.post("IssueApi", "/issues/")
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
+        const updatedAt = await API.post("IssueApi", "/issues/", { body: req.body })
         wssSendDt(updatedAt)
         res.send()
     } catch (error) {
         console.error(error)
-        res.status(error.status || 500).send({ error: error.message })
+        res.status(error.status || 500).send({ error: error })
     }
 }
 
-exports.updateIssueAttribute = (req, res) => {
+exports.updateIssueAttribute = async (req, res) => {
     try {
-        const editable = await API.get("IssueApi", "/issues/object/" + req.body._id + "updatedAt")
-        if (!editable) {
-            return res.status(500).json({
-                error: "It's being edited by another user now."
-            })
-        }
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
         const updatedAt = await API.put("IssueApi", "/issues/update/attribute", {
             body: req.body
         })
@@ -41,8 +39,10 @@ exports.updateIssueAttribute = (req, res) => {
     }
 }
 
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
     try {
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
         const updatedAt = await API.del("IssueApi", "/issues/object/" + req.param.issueId)
         wssSendDt(updatedAt)
         res.send()
@@ -54,8 +54,11 @@ exports.delete = (req, res) => {
     }
 }
 
-exports.deleteByProject = (projectId) => async (dispatch) => {
+exports.deleteByProject = async (projectId) => {
     try {
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
+    
         const updatedAt = await API.del("IssueApi", "/issues/project/" + projectId)
         wssSendDt(updatedAt)
         res.send()
@@ -71,6 +74,9 @@ exports.deleteByProject = (projectId) => async (dispatch) => {
 //Needs check...
 exports.removeLabelFromIssues = async (req, res) => {
     try {
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
+    
         req.body.tasksToUpdate.forEach(issueId => {
             API.put("IssueApi", "/issues/update/attribute", {
                 body: {

@@ -1,7 +1,7 @@
 const API = require('@aws-amplify/api')
 const wssSendDt = require('../../server')
 
-const checkLastUpdate = (data) => {
+const checkLastUpdate = async (data) => {
     try {
         const lastUpdatedAt = await API.get("LabelApi", "/labels/object/updatedAt" + data._id)
         if (lastUpdatedAt === data.upatedAt) { return true }
@@ -12,7 +12,7 @@ const checkLastUpdate = (data) => {
 }
 
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     try {
         const updatedAt = await API.post("LabelApi", "/labels", {
             body: req.body
@@ -28,8 +28,11 @@ exports.create = (req, res) => {
 }
 
 // Delete all label
-exports.deleteLabelByProject = (req, res) => {
+exports.deleteLabelByProject = async (req, res) => {
     try {
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
+    
         const updatedAt = await API.del("LabelApi", "/labels/project/" + req.params.projectId)
         wssSendDt(updatedAt, "label", "delete")
         res.send()
@@ -43,8 +46,11 @@ exports.deleteLabelByProject = (req, res) => {
 
 
 // Retrieve all labels involving a particular user
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
     try {
+        const isUpdateValid = checkLastUpdate(req.body)
+        if (!isUpdateValid) { res.status(500).send({ error: "The resource is being updated by another user." }) }
+    
         const updatedAt = await API.del("LabelApi", "/labels/" + req.params.id)
         wssSendDt(updatedAt, "label", "delete")
         res.send()

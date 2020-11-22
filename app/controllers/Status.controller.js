@@ -1,7 +1,7 @@
 const API = require('@aws-amplify/api')
 const wssSendDt = require('../../server')
 
-const checkLastUpdate = (data) => {
+const checkLastUpdate = async (data) => {
     try {
         const lastUpdatedAt = await API.get("StatusApi", "/status/object/updatedAt" + data._id)
         if (lastUpdatedAt === data.upatedAt) { return true }
@@ -12,45 +12,15 @@ const checkLastUpdate = (data) => {
 }
 
 
-exports.create = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        // Validate request
-        if (!req.body.name || !req.body.project) {
-            return res.status(200).json({
-                success: false,
-                message: "The content body can not be empty."
-            });
-        }
+exports.create =async  (req, res) => {
 
-        // Create a status
-        const id = mongoose.Types.ObjectId();
-        const status = new Status({
-            _id: id,
-            name: req.body.name,
-            project: req.body.project
-        });
-        try {
-            await status.save()
-            return res.status(200).json({
-                success: true, id: status._id
-            });
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while creating the status."
-            });
-        }
-    })(req, res, next);
+    await API.put("StatusApi", "/status", {
+        body: newStatus
+    })
 }
 
 // Retrieve all statuss involving a particular user
-exports.findAll = (req, res) => {
+exports.findAll = async (req, res) => {
     Status.find().then(data => { res.status(200).send(data); })
         .catch(err => {
             return res.status(500).json({
@@ -61,7 +31,7 @@ exports.findAll = (req, res) => {
 }
 
 // Retrieve a single Status with id
-exports.updateIssueOrders = (req, res) => {
+exports.updateIssueOrders =async  (req, res) => {
     try {
         const updatedAt = await API.put("StatusApi", "/status/update/attribute", {
             body: req.body
@@ -78,144 +48,8 @@ exports.updateIssueOrders = (req, res) => {
 
 }
 
-// Retrieve all Statuss in a particular project
-exports.findByProject = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        validateId(req, res);
-        Status.find({ project: req.params.id }).then(data => {
-            return res.status(200).json({
-                success: true,
-                data: data
-            });
-        }).catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Statuss."
-            });
-        });
-    })(req, res, next);
-}
-
-exports.update = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        validateId(req, res);
-        Status.findByIdAndUpdate(req.params.id, req.body.data).then(data => {
-            return res.status(200).json({
-                success: true,
-                data: data
-            });
-        }).catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Statuss."
-            });
-        });
-    })(req, res, next);
-}
-
-exports.updateIssueOrders = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        validateId(req, res);
-        const status = await Status.findById(req.params.id)
-        try {
-            const result = Array.from(status.issue_order);
-            const [removed] = result.splice(startIndex, 1);
-            result.splice(endIndex, 0, removed);
-            status.issue_order = result
-            await Status.save()
-            return res.status(200).json({
-                success: true
-            });
-        }
-        catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Statuss."
-            });
-        }
-    })(req, res, next);
-}
-
-exports.moveIssueOrders = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        validateId(req, res);
-        const sourceStatus = await Status.findById(req.body.data.source)
-        const destinationStatus = await Status.findById(req.body.data.destination)
-        try {
-            const sourceResult = Array.from(sourceStatus.issue_order);
-            const destinationResult = Array.from(destinationStatus.issue_order);
-            const [removed] = sourceResult.splice(startIndex, 1);
-            destinationResult.splice(endIndex, 0, removed);
-            sourceStatus.issue_order = sourceResult
-            destinationStatus.issue_order = destinationResult
-            await Status.save()
-            res.status(200).json({
-                success: true
-            });
-        }
-        catch (err) {
-            res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Statuss."
-            });
-        }
-    })(req, res, next);
-}
-
-// Delete all Status
-exports.deleteAll = async (req, res) => {
-    await Status.deleteMany()
-    try {
-        res.status(200).json({ success: true });
-    } catch (err) {
-        res.status(500).json({
-            message: err || "Some error occurred while deleting Status. "
-        });
-    }
-}
-
 // Retrieve all Statuss involving a particular user
-exports.delete = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
-        validateId(req, res);
-        if (err) {
-            console.log(err);
-        }
-        if (info !== undefined) {
-            res.status(403).send(info.message);
-        }
-        try {
-            await Status.findByIdAndDelete(req.params.id)
-            res.status(200).json({ success: true });
-        } catch (err) {
-            res.status(500).json({
-                message: err || "Some error occurred while deleting Status. "
-            });
-        }
-    })(req, res, next);
+exports.delete = async (req, res, next) => {
+   
 };
 

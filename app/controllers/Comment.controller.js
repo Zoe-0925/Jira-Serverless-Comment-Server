@@ -8,7 +8,7 @@ const pusher = new Pusher({
     useTLS: true,
 });
 
-const checkLastUpdate = (data) => {
+const checkLastUpdate = async (data) => {
     try {
         const lastUpdatedAt = await API.get("CommentApi", "/comments/object/" + data._id + "/updatedAt")
         if (lastUpdatedAt === data.upatedAt) { return true }
@@ -18,25 +18,54 @@ const checkLastUpdate = (data) => {
     }
 }
 
-exports.create = (req, res) => {
-
+exports.create = async (req, res) => {
+    try {
+        const updatedAt = await API.post("CommentApi", "/comments/", { body: req.body })
+        wssSendDt(updatedAt)
+        res.send()
+    } catch (error) {
+        console.error(error)
+        res.status(error.status || 500).send({ error: error })
+    }
 }
 
-exports.updateDescription = (req, res, next) => {
+exports.updateDescription = async (req, res) => {
+    try {
+        const updateIsValid = checkLastUpdate(req.body)
+        if (!updateIsValid) { return res.status(500).send({ error: "The resource is being updated by another user." }) }
+        const updatedAt = await API.put("CommentApi", "/comments/description", { body: req.body })
+        wssSendDt(updatedAt)
+        res.send()
+    } catch (error) {
+        console.error(error)
+        res.status(error.status || 500).send({ error: error })
+    }
+}
 
+exports.delete = async (req, res) => {
+    try {
+        const updateIsValid = checkLastUpdate(req.body)
+        if (!updateIsValid) { return res.status(500).send({ error: "The resource is being updated by another user." }) }
+        const updatedAt = await API.del("CommentApi", "/comments/" + req.body._id)
+        wssSendDt(updatedAt)
+        res.send()
+    } catch (error) {
+        console.error(error)
+        res.status(error.status || 500).send({ error: error })
+    }
 }
 
 // Delete all Comment
-exports.deleteAll = (req, res) => {
+exports.deleteAll = async (req, res) => {
 
 }
 
 
 // Retrieve all Comments involving a particular user
-exports.delete = (req, res, next) => {
+exports.delete = async (req, res, next) => {
 
 }
 
-exports.deleteByIssue = (req, res, next) => {
+exports.deleteByIssue = async (req, res, next) => {
 
 }
