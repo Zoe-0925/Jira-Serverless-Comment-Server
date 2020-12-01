@@ -1,10 +1,13 @@
-const app = require('express')()
-app.server = require('http').createServer(app)
+
+const http = require('http')
+const express = require('express')
+let app = express()
+app.server = http.createServer(app)
 const cors = require('cors')
 const PubSub = require('./pubsub')
-var webSocketsServerPort = 1337;
+var webSocketsServerPort = 8080;
 const bodyParser = require('body-parser')
-const WebSocketServer = require('ws');
+const WebSocket = require('ws');
 
 app.use(bodyParser.json())
 app.use(cors({
@@ -12,14 +15,12 @@ app.use(cors({
 }))
 app.use(bodyParser.urlencoded({ extended: true }))
 
+//web socket server
+const wss = new WebSocket.Server({ port: 8000 });
+
 //Initial PubSub Server
 const pubSubServer = new PubSub({ wss: wss })
 app.pubsub = pubSubServer
-
-//web socket server
-const wss = new WebSocketServer({
-  httpServer: app.server
-});
 
 //HTTP server
 app.server.listen(webSocketsServerPort, () => {
@@ -28,9 +29,11 @@ app.server.listen(webSocketsServerPort, () => {
 })
 
 
+/**
 //TODO
 //This method is no longer applicable
 exports.wssSendDt = (dt, tableName, operation) => {
   const wssMessage = JSON.stringify({ dt: dt, table: tableName, operation: operation })
   wss.clients.forEach((ws) => ws.send(wssMessage))
 }
+*/

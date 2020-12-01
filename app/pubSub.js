@@ -1,9 +1,9 @@
 var _ = require('lodash');
-const { v4: uuidv4 } = require('uuid');
+const { uuid } = require('uuidv4')
 const Subscription = require('./subscription')
 const controller = require("./controller.js")
 
-export default class PubSub {
+class PubSub {
 
     constructor(ctx) {
         this.wss = ctx.wss
@@ -215,7 +215,7 @@ export default class PubSub {
      * @returns {*}
      */
     autoId() {
-        return uuidv4()
+        return uuid()
     }
 
     /**
@@ -238,3 +238,5 @@ export default class PubSub {
     }
 
 }
+
+module.exports = PubSub
