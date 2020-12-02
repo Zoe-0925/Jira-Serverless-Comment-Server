@@ -13,7 +13,7 @@ const checkLastUpdate = async (data, api, url) => {
 exports.create = async (payload, api, url) => {
     try {
         const updatedAt = await API.post(api, url, { body: payload })
-        return { ...payload, updatedAt: updatedAt }
+        return { payload:payload, updatedAt: updatedAt }
     } catch (error) {
         return { error: err }
     }
