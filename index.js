@@ -5,7 +5,7 @@ let app = express()
 app.server = http.createServer(app)
 const cors = require('cors')
 const PubSub = require('./src/pubsub')
-var webSocketsServerPort = 8080;
+var webSocketsServerPort = process.env.PORT || 8080;
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
 
