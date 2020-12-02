@@ -4,7 +4,7 @@
   "description": "The real-time server for the Comment feature in Jira-serverless",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon index.js --exec babel-node -e js",
+    "start": "nodemon index.js",
     "dev": "nodemon index",
     "build": "babel src -s -D -d dist --presets env"
   },
