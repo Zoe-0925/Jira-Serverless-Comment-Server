@@ -2,10 +2,11 @@
   "name": "jira-serverless-comment-server",
   "version": "1.0.0",
   "description": "The real-time server for the Comment feature in Jira-serverless",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "npm run test",
-    "start": "node index.js"
+    "start": "node dist",
+    "dev": "nodemon -w src --exec \"babel-node src --presets env\"",
+    "build": "babel src -s -D -d dist --presets env"
   },
   "repository": {
     "type": "git",
@@ -19,14 +20,20 @@
   "homepage": "https://github.com/Zoe-0925/Jira-Serverless-Comment-Server#readme",
   "dependencies": {
     "aws-amplify": "^3.3.8",
+    "babel-core": "^6.26.3",
+    "babel-polyfill": "^6.26.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "http": "0.0.1-security",
     "lodash": "^4.17.20",
-    "nodemon": "^2.0.6",
     "uuidv4": "^6.2.5",
     "ws": "^7.4.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^2.0.6"
   }
 }
