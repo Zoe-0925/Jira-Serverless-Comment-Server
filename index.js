@@ -18,7 +18,7 @@ app.use(cors({
 app.use(bodyParser.urlencoded({ extended: true }))
 
 //HTTP server
-app.server.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
+app.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
 .listen(webSocketsServerPort, () => {
   console.log((new Date()) + " Server is listening on port "
     + webSocketsServerPort);
