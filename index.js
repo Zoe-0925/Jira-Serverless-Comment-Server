@@ -39,10 +39,9 @@ wss.on('connection', (ws) => {
   ws.on('close', () => console.log('Client disconnected'));
 });
 
-/** 
+
 setInterval(() => {
   pubSubServer.clients.forEach((client) => {
     client.send(new Date().toTimeString());
   });
 }, 1000);
-*/
