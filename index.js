@@ -7,7 +7,7 @@ const { handleReceivedClientMessage,
   stringToJson, addClient, removeClient, autoId, pubsubSend } = require('./src/pubsub')
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
-const Subscription = require('./subscription')
+const Subscription = require('./src/subscription')
 let clients = new Map()
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
