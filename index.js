@@ -19,13 +19,13 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 //HTTP server
 app.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-.listen(webSocketsServerPort, () => {
-  console.log((new Date()) + " Server is listening on port "
-    + webSocketsServerPort);
-})
+  .listen(webSocketsServerPort, () => {
+    console.log((new Date()) + " Server is listening on port "
+      + webSocketsServerPort);
+  })
 
 //web socket server
-const wss = new WebSocket.Server(app.server);
+const wss = new WebSocket.Server({ app });
 
 //Initial PubSub Server
 const pubSubServer = new PubSub({ wss: wss })
