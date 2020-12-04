@@ -3,10 +3,12 @@ const http = require('http')
 const express = require('express')
 let app = express()
 const cors = require('cors')
-const PubSub = require('./src/pubsub')
+const { handleReceivedClientMessage,
+  stringToJson, addClient, removeClient, autoId, pubsubSend } = require('./src/pubsub')
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
-
+const Subscription = require('./subscription')
+const clients = new Map()
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
 
@@ -30,12 +32,33 @@ server.listen(webSocketsServerPort, () => {
 const wss = new WebSocket.Server({ server });
 
 //Initial PubSub Server
-const pubSubServer = new PubSub({ wss: wss })
-app.pubsub = pubSubServer
-
 
 wss.on('connection', (ws) => {
-  console.log('Client connected');
-  ws.on('close', () => console.log('Client disconnected'));
+  const id = autoId()
+  const client = {
+    id: id,
+    ws: ws,
+    subscriptions: [],
+  }
+  const subscription = new Subscription()
+
+  // add new client to the map
+  addClient(client, clients)
+
+  // listen when receive message from client
+  ws.on('message',
+    (message) => handleReceivedClientMessage(id, message, clients))
+
+  ws.on('close', () => {
+    console.log('Client is disconnected')
+    // Find user subscriptions and remove
+    const userSubscriptions = subscription.getSubscriptions(
+      (sub) => sub.clientId === id)
+    userSubscriptions.forEach((sub) => {
+      subscription.remove(sub.id)
+    })
+    // now let remove client
+    removeClient(id)
+  })
 });
 
