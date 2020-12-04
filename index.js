@@ -8,7 +8,7 @@ const { handleReceivedClientMessage,
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
 const Subscription = require('./subscription')
-const clients = new Map()
+let clients = new Map()
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
 
@@ -43,7 +43,7 @@ wss.on('connection', (ws) => {
   const subscription = new Subscription()
 
   // add new client to the map
-  addClient(client, clients)
+  clients = addClient(client, clients)
 
   // listen when receive message from client
   ws.on('message',
@@ -58,7 +58,7 @@ wss.on('connection', (ws) => {
       subscription.remove(sub.id)
     })
     // now let remove client
-    removeClient(id)
+    clients = clients.remove(id)
   })
 });
 

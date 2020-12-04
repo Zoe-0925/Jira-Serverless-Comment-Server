@@ -144,17 +144,8 @@ export function addClient(client, clients) {
         client.id = autoId()
     }
     clients = clients.set(client.id, client)
+    return clients
 }
-
-/**
- * Remove a client after disconnecting
- * @param id
- */
-export function removeClient(id, clients) {
-    clients = clients.remove(id)
-}
-
-
 
 /**
  * Generate an ID
