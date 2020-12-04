@@ -33,14 +33,8 @@ const wss = new WebSocket.Server({ server });
 const pubSubServer = new PubSub({ wss: wss })
 app.pubsub = pubSubServer
 
-
 wss.on('connection', (ws) => {
   console.log('Client connected');
   ws.on('close', () => console.log('Client disconnected'));
 });
 
-setInterval(() => {
-  wss.clients.forEach((client) => {
-    client.send(new Date().toTimeString());
-  });
-}, 1000);
