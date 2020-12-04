@@ -2,7 +2,6 @@
 const http = require('http')
 const express = require('express')
 let app = express()
-app.server = http.createServer(app)
 const cors = require('cors')
 const PubSub = require('./src/pubsub')
 const bodyParser = require('body-parser')
@@ -17,15 +16,18 @@ app.use(cors({
 }))
 app.use(bodyParser.urlencoded({ extended: true }))
 
-//HTTP server
 app.use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-  .listen(webSocketsServerPort, () => {
-    console.log((new Date()) + " Server is listening on port "
-      + webSocketsServerPort);
-  })
+
+const server = http.createServer(app)
+
+//HTTP server
+server.listen(webSocketsServerPort, () => {
+  console.log((new Date()) + " Server is listening on port "
+    + webSocketsServerPort);
+})
 
 //web socket server
-const wss = new WebSocket.Server({ app });
+const wss = new WebSocket.Server({ server });
 
 //Initial PubSub Server
 const pubSubServer = new PubSub({ wss: wss })

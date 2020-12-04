@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "npm run build",
     "start": "node index.js",
-    "start:dev": "nodemon ndex.js",
+    "start:dev": "nodemon index.js",
     "dev": "nodemon index",
     "build": "babel src -s -D -d dist --presets env"
   },
