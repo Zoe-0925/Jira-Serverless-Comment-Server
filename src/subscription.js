@@ -1,4 +1,5 @@
 const { uuid } = require('uuidv4')
+const { Map } = require('immutable');
 
 class Subscription {
 

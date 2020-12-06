@@ -7,9 +7,10 @@ const bodyParser = require('body-parser')
 const WebSocket = require('ws');
 const Subscription = require('./src/subscription')
 const { uuid } = require('uuidv4')
-let clients = new Map()
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
+const { Map } = require('immutable');
+let clients = new Map()
 
 app.use(bodyParser.json())
 app.use(cors({
