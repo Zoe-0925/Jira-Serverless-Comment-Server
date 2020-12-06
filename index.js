@@ -213,9 +213,13 @@ wss.on('connection', (ws) => {
     subscriptions: [],
   }
   const subscription = new Subscription()
+  console.log("client", client)
+
+  //TODO
+  //bug
 
   // add new client to the map
-  addClient(client, clients)
+  // addClient(client, clients)
 
   // listen when receive message from client
   ws.on('message',
@@ -224,6 +228,8 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('Client is disconnected')
     // Find user subscriptions and remove
+
+    /**
     const userSubscriptions = subscription.getSubscriptions(
       (sub) => sub.clientId === id)
     userSubscriptions.forEach((sub) => {
@@ -231,5 +237,6 @@ wss.on('connection', (ws) => {
     })
     // now let remove client
     clients.remove(id)
+    */
   })
 });
