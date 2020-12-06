@@ -9,8 +9,8 @@ const Subscription = require('./src/subscription')
 const { v4: uuidv4 } = require('uuid');
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
-const { Map } = require('immutable');
-let clients = new Map()
+const Immutable = require('immutable');
+let clients = Immutable.Map()
 
 app.use(bodyParser.json())
 app.use(cors({
@@ -89,7 +89,7 @@ function handleUnsubscribe(topic, clientId, subscription) {
 * @param from
 * @isBroadcast = false that mean send all, if true, send all not me
 */
-function handlePublishMessage(topic, message, subscription, clients) {
+function handlePublishMessage(topic, message, subscription) {
   let subscriptions = subscription.getSubscriptions(
     (subs) => subs.topic === topic)
   // now let send to all subscribers in the topic with exactly message from publisher
@@ -111,7 +111,7 @@ function handlePublishMessage(topic, message, subscription, clients) {
 * @param clientId
 * @param message
 */
-function handleReceivedClientMessage(clientId, message, clients) {
+function handleReceivedClientMessage(clientId, message) {
   if (typeof message === 'string') {
 
     //TODO
@@ -170,7 +170,6 @@ function stringToJson(message) {
 /**
 * Add new client connection to the map
 * @param client
-* @param clients
 */
 function addClient(client) {
   if (!client.id) {
@@ -178,8 +177,6 @@ function addClient(client) {
   }
   clients = clients.set(client.id, client)
 }
-
-
 
 /**
 * Send to client message
@@ -200,30 +197,26 @@ function pubsubSend(clientId, message) {
   ws.send(message)
 }
 
-
-
-
 //Initial PubSub Server
 
 wss.on('connection', (ws) => {
-  const id = uuidv4()
-  const client = {
-    id: id,
+  console.log("connected")
+
+  let client = {
+    id: uuidv4(),
     ws: ws,
     subscriptions: [],
   }
-  const subscription = new Subscription()
-  console.log("client", client)
 
-  //TODO
-  //bug
+  const subscription = new Subscription()
 
   // add new client to the map
-  // addClient(client, clients)
+  addClient(client)
 
   // listen when receive message from client
   ws.on('message',
-    (message) => handleReceivedClientMessage(id, message))
+    (message) => console.log("message", message))
+  // handleReceivedClientMessage(id, message))
 
   ws.on('close', () => {
     console.log('Client is disconnected')

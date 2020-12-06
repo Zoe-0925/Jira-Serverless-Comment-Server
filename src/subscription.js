@@ -1,11 +1,11 @@
 const { v4: uuidv4 } = require('uuid')
-const { Map } = require('immutable');
+const Immutable = require('immutable');
 
 class Subscription {
 
     constructor() {
 
-        this.subscriptions = new Map()
+        this.subscriptions = Immutable.Map()
     }
 
     /**
