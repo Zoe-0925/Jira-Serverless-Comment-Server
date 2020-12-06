@@ -3,8 +3,6 @@ const http = require('http')
 const express = require('express')
 let app = express()
 const cors = require('cors')
-const { handleReceivedClientMessage,
-  stringToJson, addClient, removeClient, autoId, pubsubSend } = require('./src/pubsub')
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
 const Subscription = require('./src/subscription')
@@ -31,10 +29,182 @@ server.listen(webSocketsServerPort, () => {
 //web socket server
 const wss = new WebSocket.Server({ server });
 
+
+
+/**
+ * Handle add subscription
+ * @param topic
+ * @param clientId = subscriber
+ * @param subscription
+ */
+function handleAddSubscription(topic, clientId, subscription) {
+  const client = getClient(clientId)
+  if (client) {
+
+    //TODO
+    //check if this is correct
+    const subscriptionId = subscription.add(topic, clientId)
+    client.subscriptions.push(subscriptionId)
+    addClient(client)
+  }
+}
+
+/**
+* Handle unsubscribe topic
+* @param topic
+* @param clientId
+*/
+function handleUnsubscribe(topic, clientId, subscription) {
+
+  const client = getClient(clientId)
+
+  let clientSubscriptions = _.get(client, 'subscriptions', [])
+
+  const userSubscriptions = subscription.getSubscriptions(
+    (s) => s.clientId === clientId && s.type === 'ws')
+
+  userSubscriptions.forEach((sub) => {
+
+    clientSubscriptions = clientSubscriptions.filter((id) => id !== sub.id)
+
+    // now let remove subscriptions
+    subscription.remove(sub.id)
+
+  })
+
+  // let update client subscriptions
+  if (client) {
+    client.subscriptions = clientSubscriptions
+    addClient(client)
+  }
+
+}
+
+/**
+* Handle publish a message to a topic
+* @param topic
+* @param message
+* @param from
+* @isBroadcast = false that mean send all, if true, send all not me
+*/
+function handlePublishMessage(topic, message, subscription, clients) {
+  let subscriptions = subscription.getSubscriptions(
+    (subs) => subs.topic === topic)
+  // now let send to all subscribers in the topic with exactly message from publisher
+  subscriptions.forEach((subscription) => {
+    const clientId = subscription.clientId
+    pubsubsend(clientId, {
+      action: 'publish',
+      payload: {
+        topic: topic,
+        message: message,
+      },
+      clients
+    })
+  })
+}
+
+/**
+* Handle receive client message
+* @param clientId
+* @param message
+*/
+function handleReceivedClientMessage(clientId, message, clients) {
+  if (typeof message === 'string') {
+
+    //TODO
+    //Check if the loadash function is still available 
+    message = stringToJson(message)
+    let payload = _.get(message, 'payload')
+    let result
+    const action = _.get(message, 'action', '')
+    switch (action) {
+      case 'subscribe':
+        const topic = _.get(message, 'payload.body.project', null)
+        if (topic) {
+          handleAddSubscription(topic, clientId)
+        }
+        break
+      case 'unsubscribe':
+        const unsubscribeTopic = _.get(message, 'payload.body.project')
+        if (unsubscribeTopic) {
+          handleUnsubscribe(unsubscribeTopic, clientId)
+        }
+        break
+      /** 
+  case 'create':
+      result = controller(payload.body, payload.api, payload.url)
+      break
+  case 'updateAttribute':
+      result = controller(payload.body, payload.api, payload.url)
+      break
+  case 'delete':
+      result = controller(payload.body, payload.api, payload.url)
+      break
+      */
+      default:
+        break
+    }
+    if (result) {
+      handlePublishMessage(payload.body.project, result, clients)
+    }
+  }
+}
+
+/**
+* Convert string of message to JSON
+* @param message
+* @returns {*}
+*/
+function stringToJson(message) {
+  try {
+    message = JSON.parse(message)
+  } catch (e) {
+    console.log(e)
+  }
+  return message
+}
+
+/**
+* Add new client connection to the map
+* @param client
+* @param clients
+*/
+function addClient(client) {
+  if (!client.id) {
+    client.id = autoId()
+  }
+  clients = clients.set(client.id, client)
+}
+
+
+
+/**
+* Send to client message
+* @param message
+*/
+function pubsubSend(clientId, message) {
+  const client = clients.get(clientId)
+  if (!client) {
+    return
+  }
+  const ws = client.ws
+  try {
+    message = JSON.stringify(message)
+  }
+  catch (err) {
+    console.log('An error convert object message to string', err)
+  }
+  ws.send(message)
+}
+
+
+
+
 //Initial PubSub Server
 
 wss.on('connection', (ws) => {
-  const id = autoId()
+  const id = uuid()
   const client = {
     id: id,
     ws: ws,
@@ -43,11 +213,11 @@ wss.on('connection', (ws) => {
   const subscription = new Subscription()
 
   // add new client to the map
-  clients = addClient(client, clients)
+  addClient(client, clients)
 
   // listen when receive message from client
   ws.on('message',
-    (message) => handleReceivedClientMessage(id, message, clients))
+    (message) => handleReceivedClientMessage(id, message))
 
   ws.on('close', () => {
     console.log('Client is disconnected')
@@ -58,7 +228,6 @@ wss.on('connection', (ws) => {
       subscription.remove(sub.id)
     })
     // now let remove client
-    clients = clients.remove(id)
+    clients.remove(id)
   })
 });
-
