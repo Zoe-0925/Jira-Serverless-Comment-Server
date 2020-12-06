@@ -1,4 +1,4 @@
-const { uuid } = require('uuidv4')
+const { v4: uuidv4 } = require('uuid')
 const { Map } = require('immutable');
 
 class Subscription {
@@ -81,7 +81,7 @@ class Subscription {
      * @returns {*}
      */
     autoId() {
-        return uuid()
+        return uuidv4()
     }
 }
 
