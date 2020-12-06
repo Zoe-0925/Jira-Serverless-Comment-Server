@@ -31,7 +31,7 @@
     "http": "0.0.1-security",
     "immutable": "^4.0.0-rc.12",
     "lodash": "^4.17.20",
-    "uuidv4": "^6.2.5",
+    "uuid": "^8.3.1",
     "ws": "^7.4.0"
   },
   "devDependencies": {

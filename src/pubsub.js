@@ -1,5 +1,5 @@
 var _ = require('lodash');
-const { uuid } = require('uuidv4')
+const { v4: uuidv4 } = require('uuid')
 const Subscription = require('./subscription')
 const controller = require("./controller.js")
 
@@ -215,7 +215,7 @@ class PubSub {
      * @returns {*}
      */
     autoId() {
-        return uuid()
+        return uuidv4()
     }
 
     /**

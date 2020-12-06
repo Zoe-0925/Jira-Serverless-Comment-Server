@@ -6,7 +6,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const WebSocket = require('ws');
 const Subscription = require('./src/subscription')
-const { uuid } = require('uuidv4')
+const { v4: uuidv4 } = require('uuid');
 var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
 const { Map } = require('immutable');
@@ -206,7 +206,7 @@ function pubsubSend(clientId, message) {
 //Initial PubSub Server
 
 wss.on('connection', (ws) => {
-  const id = uuid()
+  const id = uuidv4()
   const client = {
     id: id,
     ws: ws,
