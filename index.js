@@ -92,7 +92,7 @@ function handlePublishMessage(topic, message) {
   // now let send to all subscribers in the topic with exactly message from publisher
   subscriptions.forEach((aSubscription) => {
     const clientId = aSubscription.clientId
-    pubsubSend(clientId,  message)
+    pubsubSend(clientId, message)
   })
 }
 
@@ -106,34 +106,43 @@ function handleReceivedClientMessage(clientId, message) {
     message = stringToJson(message)
     let payload = _.get(message, 'payload')
     let result
-    const action = _.get(message, 'action', '')
-    switch (action) {
-      case 'subscribe':
-        const topic = _.get(message, 'payload.body.project', null)
-        if (topic) {
-          handleAddSubscription(topic, clientId)
-        }
+
+    payload.map(each => {
+      const action = _.get(each, 'action', '')
+      switch (action) {
+        case 'subscribe':
+          const topic = _.get(message, 'payload.body.project', null)
+          if (topic) {
+            handleAddSubscription(topic, clientId)
+          }
+          break
+        case 'unsubscribe':
+          const unsubscribeTopic = _.get(message, 'payload.body.project')
+          if (unsubscribeTopic) {
+            handleUnsubscribe(unsubscribeTopic, clientId)
+          }
+          break
+        /** 
+    case 'create':
+        result = controller(payload.body, payload.api, payload.url)
         break
-      case 'unsubscribe':
-        const unsubscribeTopic = _.get(message, 'payload.body.project')
-        if (unsubscribeTopic) {
-          handleUnsubscribe(unsubscribeTopic, clientId)
-        }
+    case 'updateAttribute':
+        result = controller(payload.body, payload.api, payload.url)
         break
-      /** 
-  case 'create':
-      result = controller(payload.body, payload.api, payload.url)
-      break
-  case 'updateAttribute':
-      result = controller(payload.body, payload.api, payload.url)
-      break
-  case 'delete':
-      result = controller(payload.body, payload.api, payload.url)
-      break
-      */
-      default:
+    case 'delete':
+        result = controller(payload.body, payload.api, payload.url)
         break
-    }
+        */
+        default:
+          break
+      }
+    })
+
+    //TODO
+    //Update
+    // Since payload will be a list...
+    //How do we route them accordingly?
+
     if (result) {
       handlePublishMessage(payload.body.project, result)
     }
