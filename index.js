@@ -92,10 +92,7 @@ function handlePublishMessage(topic, message) {
   // now let send to all subscribers in the topic with exactly message from publisher
   subscriptions.forEach((aSubscription) => {
     const clientId = aSubscription.clientId
-    pubsubSend(clientId, {
-      action: 'publish',
-      payload: message
-    })
+    pubsubSend(clientId,  message)
   })
 }
 
@@ -203,8 +200,11 @@ wss.on('connection', (ws) => {
 
   // listen when receive message from client
   ws.on('message',
-    (message) => console.log("message", message))
-  // handleReceivedClientMessage(id, message))
+    (message) => {
+      console.log("message", message)
+      const parsedMessage = JSON.parse(message)
+      parsedMessage.map(each => handleReceivedClientMessage(id, each))
+    })
 
   ws.on('close', () => {
     console.log('Client is disconnected')
