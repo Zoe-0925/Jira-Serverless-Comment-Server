@@ -24,8 +24,6 @@ class Subscription {
      * @returns {*}
      */
     add(topic, clientId, type = 'ws') {
-
-
         // need to find subscription with same type = 'ws'
 
         const findSubscriptionWithClientId = this.subscriptions.find(
@@ -35,9 +33,8 @@ class Subscription {
             // exist and no need add more subscription
             return findSubscriptionWithClientId.id
         }
-        const id = this.autoId()
         const subscription = {
-            id: id,
+            id: this.autoId(),
             topic: topic,
             clientId: clientId,
             type: type, // email, phone

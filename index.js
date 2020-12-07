@@ -11,6 +11,7 @@ var webSocketsServerPort = process.env.PORT || 8080;
 const INDEX = '/index.html';
 const Immutable = require('immutable');
 let clients = Immutable.Map()
+let subscription = new Subscription()
 
 app.use(bodyParser.json())
 app.use(cors({
@@ -37,14 +38,10 @@ const wss = new WebSocket.Server({ server });
  * Handle add subscription
  * @param topic
  * @param clientId = subscriber
- * @param subscription
  */
-function handleAddSubscription(topic, clientId, subscription) {
-  const client = getClient(clientId)
+function handleAddSubscription(topic, clientId) {
+  const client = clients.get(clientId)
   if (client) {
-
-    //TODO
-    //check if this is correct
     const subscriptionId = subscription.add(topic, clientId)
     client.subscriptions.push(subscriptionId)
     addClient(client)
@@ -56,14 +53,14 @@ function handleAddSubscription(topic, clientId, subscription) {
 * @param topic
 * @param clientId
 */
-function handleUnsubscribe(topic, clientId, subscription) {
+function handleUnsubscribe(topic, clientId) {
 
-  const client = getClient(clientId)
+  const client = clients.get(clientId)
 
   let clientSubscriptions = _.get(client, 'subscriptions', [])
 
   const userSubscriptions = subscription.getSubscriptions(
-    (s) => s.clientId === clientId && s.type === 'ws')
+    (s) => s.clientId === clientId && s.topic === topic && s.type === 'ws')
 
   userSubscriptions.forEach((sub) => {
 
@@ -86,22 +83,18 @@ function handleUnsubscribe(topic, clientId, subscription) {
 * Handle publish a message to a topic
 * @param topic
 * @param message
-* @param from
+* @param subscription
 * @isBroadcast = false that mean send all, if true, send all not me
 */
-function handlePublishMessage(topic, message, subscription) {
+function handlePublishMessage(topic, message) {
   let subscriptions = subscription.getSubscriptions(
     (subs) => subs.topic === topic)
   // now let send to all subscribers in the topic with exactly message from publisher
-  subscriptions.forEach((subscription) => {
-    const clientId = subscription.clientId
-    pubsubsend(clientId, {
+  subscriptions.forEach((aSubscription) => {
+    const clientId = aSubscription.clientId
+    pubsubSend(clientId, {
       action: 'publish',
-      payload: {
-        topic: topic,
-        message: message,
-      },
-      clients
+      payload: message
     })
   })
 }
@@ -113,9 +106,6 @@ function handlePublishMessage(topic, message, subscription) {
 */
 function handleReceivedClientMessage(clientId, message) {
   if (typeof message === 'string') {
-
-    //TODO
-    //Check if the loadash function is still available 
     message = stringToJson(message)
     let payload = _.get(message, 'payload')
     let result
@@ -148,7 +138,7 @@ function handleReceivedClientMessage(clientId, message) {
         break
     }
     if (result) {
-      handlePublishMessage(payload.body.project, result, clients)
+      handlePublishMessage(payload.body.project, result)
     }
   }
 }
@@ -207,8 +197,6 @@ wss.on('connection', (ws) => {
     ws: ws,
     subscriptions: [],
   }
-
-  const subscription = new Subscription()
 
   // add new client to the map
   addClient(client)
