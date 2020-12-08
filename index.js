@@ -32,8 +32,6 @@ server.listen(webSocketsServerPort, () => {
 //web socket server
 const wss = new WebSocket.Server({ server });
 
-
-
 /**
  * Handle add subscription
  * @param topic
@@ -105,48 +103,31 @@ function handleReceivedClientMessage(clientId, message) {
   if (typeof message === 'string') {
     message = stringToJson(message)
     let payload = _.get(message, 'payload')
-    let result
-
-    payload.map(each => {
-      const action = _.get(each, 'action', '')
-      switch (action) {
-        case 'subscribe':
-          const topic = _.get(message, 'payload.body.project', null)
-          if (topic) {
-            handleAddSubscription(topic, clientId)
-          }
-          break
-        case 'unsubscribe':
-          const unsubscribeTopic = _.get(message, 'payload.body.project')
-          if (unsubscribeTopic) {
-            handleUnsubscribe(unsubscribeTopic, clientId)
-          }
-          break
-        /** 
-    case 'create':
-        result = controller(payload.body, payload.api, payload.url)
+    let result = []
+    const action = _.get(payload, 'action', '')
+    switch (action) {                  
+      case 'subscribe':
+        const topic = _.get(message, 'payload.body.project', null)
+        if (topic) {
+          handleAddSubscription(topic, clientId)
+        }
         break
-    case 'updateAttribute':
-        result = controller(payload.body, payload.api, payload.url)
+      case 'unsubscribe':
+        const unsubscribeTopic = _.get(message, 'payload.body.project')
+        if (unsubscribeTopic) {
+          handleUnsubscribe(unsubscribeTopic, clientId)
+        }
         break
-    case 'delete':
-        result = controller(payload.body, payload.api, payload.url)
+      case 'broadcast':
+        result.push(each)
+      default:
         break
-        */
-        default:
-          break
-      }
-    })
-
-    //TODO
-    //Update
-    // Since payload will be a list...
-    //How do we route them accordingly?
-
-    if (result) {
-      handlePublishMessage(payload.body.project, result)
     }
   }
+  if (result.length > 0) {
+    handlePublishMessage(payload[0].body.project, result)
+  }
+}
 }
 
 /**

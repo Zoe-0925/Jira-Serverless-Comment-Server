@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/Zoe-0925/Jira-Serverless-Comment-Server#readme",
   "dependencies": {
-    "aws-amplify": "^3.3.8",
     "babel-core": "^6.26.3",
     "babel-polyfill": "^6.26.0",
     "body-parser": "^1.19.0",
