@@ -128,7 +128,7 @@ function handleReceivedClientMessage(clientId, message) {
     handlePublishMessage(payload[0].body.project, result)
   }
 }
-}
+
 
 /**
 * Convert string of message to JSON
